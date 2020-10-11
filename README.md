@@ -26,7 +26,7 @@ Would show a reader *The itsy bitsy spider*, wait half a second, then show them 
 
 ## Plans
 
-- [0/8] Soon
+- [0/9] Soon
   - [ ] load stories from text files
   - [ ] break up storyreader into its own procedures
   - [ ] add story menu parser
@@ -34,15 +34,17 @@ Would show a reader *The itsy bitsy spider*, wait half a second, then show them 
   - [ ] clean up output
   - [ ] clean up console logs
   - [ ] play/pause on ENTER during narrative-play
+  - [ ] quit during narrative-play
   - [ ] collect playtesters
 - [0/4] Prerelease
   - [ ] write documentation
   - [ ] update README
   - [ ] prepare as Racket package
   - [ ] get playtester approval
-- [0/5] Upgrades
+- [0/6] Upgrades
   - [ ] render stories to plaintext (insert linebreaks based on pause duration)
   - [ ] add server stats & serialize them to disk (storyviews, reads, etc.)
+  - [ ] allow more complex stories (lines that are lists (pick one at random) or lines that are procedures - these couldn't be recorded as just plaintext obvs)
   - [ ] add story tags (content warnings)
   - [ ] add story length to its menu page
   - [ ] allow operators to tweak reading speed

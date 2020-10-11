@@ -1,25 +1,45 @@
 #lang racket
 
+;; Structs
+;;   storyserver operator story
+;; ---
+;; storyserver: LISTENER clock operators stories
 (struct storyserver
   (listener
    [clock #:mutable]
    [operators #:mutable]
    [stories #:mutable]))
+;; operator: IN OUT parser
 (struct operator
   (storyserver in out [parser #:mutable]))
+;; story: NAME NARRATIVE
 (struct story
   (name narrative))
 
-
+;; General utility procedures
+;;   nth index-of
+;; ---
+;; nth
+;;   list integer -> any
+;; Returns the INTEGERth element of LIST
 (define (nth l c)
   (cond
     [(null? l) (raise-argument-error 'nth "index OOB")]
     [(= c 0) (first l)]
     [else (nth (rest l) (- c 1))]))
-
+;; index-of
+;;   list element -> integer
+;; Returns the index of ELEMENT within LIST
 (define (index-of l x)
   (for/or ([y l] [i (in-naturals)] #:when (equal? x y)) i))
 
+;; Information presentation procedures (show & render)
+;; ---
+;; Show procedures (display information to StoryServer operators)
+;; ---
+;; show-main-menu
+;;   operator -> void
+;; Shows the StoryServer's main menu to OPERATOR
 (define (show-op-menu op)
   (define S
     (storyserver-stories (operator-storyserver op)))
@@ -33,7 +53,11 @@
                        (index-of S s)
                        (story-name s)))
              S)))))
-
+;; Parser procedures
+;; ---
+;; make-main-menu-parser
+;;   operator -> procedure
+;; Returns a procedure that parses main menu interactions
 (define (make-menu-parser op)
   (λ (op line)
     (define selection (string->number line))
@@ -72,7 +96,9 @@
         ((λ ()
            (message-operator op "Invalid selection")
            (show-op-menu op))))))
-
+;; make-login-parser
+;;   operator -> procedure
+;; Returns a procedure that parses logging into the StoryServer
 (define (make-login-parser op)
   (define stage 0)
   (λ (op line)
@@ -87,6 +113,11 @@
       [else
        (message-operator op "Not gonna break?")])))
 
+;; StoryServer procedures
+;; ---
+;; message-operator
+;;   operator string -> void
+;; Displays STRING to OPERATOR
 (define (message-operator op line)
   (define op-out (operator-out op))
   (display
@@ -97,11 +128,16 @@
     line)
    op-out)
   (flush-output op-out))
-
+;; remove-operator!
+;;   storyserver operator -> void
+;; Removes OPERATOR from STORYSERVER
 (define (remove-operator! serv op)
   (set-storyserver-operators!
    (remove op (storyserver-operators serv))))
-
+;; handler-operators
+;;   storyserver -> void
+;; Looks for any input from each of STORYSERVER's operators,
+;; sending it to that operator's parser.
 (define (handle-operators operators)
   (map
    (λ (op)
@@ -122,7 +158,9 @@
           [(eof-object? op-line)
            (remove-operator! op-serv op)])]))
    operators))
-
+;; accept-operator!
+;;   storyserver -> void
+;; Adds a new connection on STORYSERVER's listener as an operator.
 (define (accept-operator! serv)
   (define-values
     (in out)
@@ -139,6 +177,11 @@
    op
    "Your connection to the storyserver from ~a has been accepted.\nPress ENTER"))
 
+;; Creation procedures
+;; ---
+;; make-storyserver
+;;   [list] [integer] -> storyserver
+;; Returns a storyserver whose stories are LIST and port is INTEGER
 (define (make-storyserver [stories '()] [port 4748])
   (define serv
     (storyserver (tcp-listen port 5 #t) (void) '() stories))
@@ -151,53 +194,34 @@
         (when (tcp-accept-ready? (storyserver-listener serv))
           (accept-operator! serv))
         (sleep 0.1)
-        (storyserver-loop))))))
-
+        (storyserver-loop)))))
+  serv)
+;; make-story
+;;   string list -> story
+;; Returns a story whose name is STRING and whose narrative is LIST
 (define (make-story name narrative)
   (story name narrative))
 
-(define fight-of-the-good-ship-clarissa
-  (make-story
-   "The Fight of the Good Ship Clarissa"
-   '("The space rocket Clarissa was nine days out from Venus."
-     1.5
-     "The members of the crew were also out for nine days." )))
-
-(define how-deer-got-eir-antlers
-  ;; originally from
-  ;; https://www.ccs-nc.org/apps/pages/index.jsp?uREC_ID=373900&type=d&pREC_ID=840882
-  ;; http://www.northerncherokeenation.com/how-the-deer-got-his-horns.html
-  (make-story
-   "How deer got eir antlers"
-   '("Long ago the animals were just like people."
-     2
-     "Some were bashful."
-     1
-     "Some were full of pride."
-     1
-     "Some of the animals were humble and some of them tried to best all the other animals at everything."
-     3
-     "At the particular time of this story, rabbit and deer were having a big argument over who was the fastest runner."
-     3
-     "They had argued for so long and so loudly that the other animals got tired of listening to them. Bear suggested that they have a race and settle the argument once and for all."
-     2
-     "\"Whoever wins,\" said Bear, \"is the fastest runner of all.\""
-     2
-     "Rabbit shook his head. \"Not me,\" he said. \"I must have a prize to look forward to if I win. If I can't win a prize, I will not run.\""
-     2
-     "One of the animals, beaver, began to carve. He carved a beautiful set of antlers. They were the first set of antlers ever seen in the world and all the animals exclaimed at how wonderful an animal would look with the crown of antlers on his head. When Rabbit saw the antlers he agreed right away to run the race. \"I wish I had that set of antlers,\" he thought to himself."
-     2
-     "Rabbit said, \"I am new to these woods. Let me have a look around so I will know the lay of the land before the race.\" He ran into a thicket and didn't come out. Soon the other animals began to worry. They waited for a long time. One of the animals went into the thicket to look for the rabbit."
-     2
-     "The animal soon came out of the thicket. He had an angry look on his face. \"That rabbit is cheating!\" he said. Rabbit soon came out of the thicket. When he was accused of cheating he shouted and said he would never cheat. \"Come on and start the race!\" he yelled to the deer. \"If you don't hurry and start the race the antlers are mine. Hurry up and start the race!\""
-     2
-     "The deer stood where he was while the other animals went to look in the thicket. They saw where the rabbit had been cutting a short cut out through all the brush and briars. He certainly had been cheating."
-     2
-     "The animals said to the the rabbit, \"You would lie and cheat to win the prize of the antlers. The deer was going to run the race fairly. He will have the antlers.\" As the rabbit ran away in anger, the animals placed the antlers upon the deer's head. They looked beautiful."
-     2
-     "Deer still wears his antlers. Once a year they fall off his head to remind him that he did not always have them. He won them through a sense of fair play.")))
-
-(define my-storyserver
-  (make-storyserver
-   (list how-deer-got-eir-antlers
-         fight-of-the-good-ship-clarissa)))
+(module+ test
+  (require rackunit)
+  (provide storystream-tests)
+  (define test-story-name "The Itsy-bitsy Spider")
+  (define test-story-narrative
+    '("The itsy bitsy spider"
+      0.5 "climbed up the water spout" 1
+      "Down came the rain" 0.5 "and washed the spider out" 1
+      "Out came the sun" 0.5 "and dried up all the rain" 1.5
+      "So the itsy-bitsy-spider" 0.5 "went up the spout again"))
+  (define storystream-tests
+    (test-suite
+     "Tests for StoryStream"
+     (test-case
+         "Making a story with a string and a list of strings and numbers."
+       (check-pred story? (make-story test-story-name
+                                      test-story-narrative)))
+     (test-case
+         "Making a storyserver with the test story."
+       (check-pred storyserver?
+                   (make-storyserver
+                    (make-story test-story-name
+                                test-story-narrative)))))))
