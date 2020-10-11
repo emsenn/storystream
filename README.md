@@ -27,7 +27,7 @@ Would show a reader *The itsy bitsy spider*, wait half a second, then show them 
 ## Plans
 
 - [0/9] Soon
-  - [ ] load stories from text files
+  - [X] load stories from text files
   - [ ] break up storyreader into its own procedures
   - [ ] add story menu parser
   - [ ] add some lakota stories
@@ -44,7 +44,7 @@ Would show a reader *The itsy bitsy spider*, wait half a second, then show them 
 - [0/6] Upgrades
   - [ ] render stories to plaintext (insert linebreaks based on pause duration)
   - [ ] add server stats & serialize them to disk (storyviews, reads, etc.)
-  - [ ] allow more complex stories (lines that are lists (pick one at random) or lines that are procedures - these couldn't be recorded as just plaintext obvs)
+  - [ ] allow more complex stories (lines that are lists (pick one at random) or lines that are procedures - these couldn't be recorded as just plaintext obvs) (this'll probably be version 2)
   - [ ] add story tags (content warnings)
   - [ ] add story length to its menu page
   - [ ] allow operators to tweak reading speed

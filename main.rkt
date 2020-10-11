@@ -1,5 +1,9 @@
 #lang racket
 
+(provide make-storyserver
+         make-story
+         load-story)
+
 ;; Structs
 ;;   storyserver operator story
 ;; ---
@@ -201,6 +205,22 @@
 ;; Returns a story whose name is STRING and whose narrative is LIST
 (define (make-story name narrative)
   (story name narrative))
+
+;; Persistence procedures
+;; ---
+;; load-story
+;;   string -> story
+;; Loads the text at path STRING as a story
+(define (load-story story-path)
+  (define lines (file->lines story-path))
+  (make-story
+   (car lines)
+   (map
+    (λ (line)
+      (if (string->number line)
+          (string->number line)
+          line))
+    (cdr lines))))
 
 (module+ test
   (require rackunit)
